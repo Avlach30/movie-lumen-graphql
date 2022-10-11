@@ -6,6 +6,7 @@ use App\Helper\ApiResponse;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Ramsey\Uuid\Uuid;
 
 class AuthController extends Controller
 {
@@ -14,6 +15,10 @@ class AuthController extends Controller
 
     public function SignUp(Request $request) {
 
+        if (!$request->hasFile('avatar')) {
+            return $this->errorResponse('Sorry! you must upload an avatar', 400);
+        }
+
         $this->validate($request, [
             'name' => 'required',
             'email' => 'required|email',
@@ -21,10 +26,32 @@ class AuthController extends Controller
             'phone_number' => 'required'
         ]);
 
+        $image = $request->file('avatar');
+
+        $fileName = $image->getClientOriginalName();
+        $fileExtension = $image->getClientOriginalExtension();
+        $fileSize = $image->getSize();
+
+        if (in_array($fileExtension, array("jpg", "jpeg", "png")) == false ) {
+            return $this->errorResponse('Sorry! only image file is allowed', 400);
+        }
+
+        if ($fileSize > 1572864) {
+            return $this->errorResponse('Sorry! only image file with size smaller than 1,5 Mb is allowed', 400);
+        }
+
+        $uuid = $this->attributes['uuid'] = Uuid::uuid4()->toString();
+        $avatarName = 'image-' . $uuid . '.' . $fileExtension;
+
+        
         $isExist = User::where('email',$request->input('email'))->first();
         if ($isExist) {
             return $this->errorResponse('User already exist', 400);
         }
+
+
+        $image->move('avatar/', $avatarName);
+        $avatarPath = '/public/avatar/' . $avatarName;
 
         $isAdmin = true;
         $uri = $request->path();
@@ -41,7 +68,7 @@ class AuthController extends Controller
         $user->password = $hashedPw;
         $user->phone_number = $request->input('phone_number');
 
-        $user->avatar = '/avatar/some-image.jpg';
+        $user->avatar = $avatarPath;
         $user->is_admin = $isAdmin;
 
         $user->save();

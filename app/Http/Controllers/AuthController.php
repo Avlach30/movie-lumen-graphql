@@ -85,4 +85,16 @@ class AuthController extends Controller
 
         return $this->successResponse($user, 'Sign up successfully', 201);
     }
+
+    public function login(Request $request)
+    {
+        $credentials = $request->only(['email', 'password']);
+        $expiryTime = auth()->factory()->getTTL() * 60;
+
+        if (! $token = auth()->attempt($credentials)) {
+            return $this->errorResponse('Invalid email or password', 401);
+        }
+
+        return $this->loginSuccessResponse($token, 'Login successfully', 200, $expiryTime);
+    }
 }

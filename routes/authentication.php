@@ -18,3 +18,7 @@ $router->group(['prefix' => 'api/v1/auth'], function () use ($router) {
     $router->post('admin/signup', 'AuthController@SignUp');
     $router->post('login', 'AuthController@login');
 });
+
+$router->group(['prefix' => 'api/v1', 'middleware' => 'auth'], function () use ($router) {
+    $router->get('profile', 'AuthController@getProfile');
+});

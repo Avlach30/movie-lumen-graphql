@@ -18,4 +18,13 @@ trait ApiResponse{
             'message'=> 'Error occured'
         ], $code);
     }
+    protected function loginSuccessResponse($token, $message, $code, $expiryTime) 
+    {
+        return response()->json([
+            'isSuccess'=> true,
+            'message' => $message,
+            'token' => $token,
+            'expires-in' => $expiryTime
+        ], $code);
+    }
 }

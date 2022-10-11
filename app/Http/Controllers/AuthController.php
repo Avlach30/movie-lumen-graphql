@@ -97,4 +97,11 @@ class AuthController extends Controller
 
         return $this->loginSuccessResponse($token, 'Login successfully', 200, $expiryTime);
     }
+
+    public function getProfile()
+    {
+        $user = auth()->user();
+
+        return $this->successResponse($user, 'Get logged user data successfully', 200);
+    }
 }

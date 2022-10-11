@@ -16,4 +16,5 @@
 $router->group(['prefix' => 'api/v1/auth'], function () use ($router) {
     $router->post('signup-customer', 'AuthController@SignUp');
     $router->post('admin/signup', 'AuthController@SignUp');
+    $router->post('login', 'AuthController@login');
 });

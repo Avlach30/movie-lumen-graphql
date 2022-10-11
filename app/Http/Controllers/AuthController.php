@@ -13,6 +13,16 @@ class AuthController extends Controller
 
     use ApiResponse;
 
+    /**
+     * Create a new AuthController instance.
+     *
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->middleware('auth:api', ['except' => ['login', 'register']]);
+    }
+
     public function SignUp(Request $request) {
 
         if (!$request->hasFile('avatar')) {

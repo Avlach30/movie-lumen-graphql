@@ -66,6 +66,8 @@ class MovieController extends Controller
 
         try {
 
+            DB::beginTransaction();
+
             $movie = new Movie;
 
             $movie->title = $request->input('title');

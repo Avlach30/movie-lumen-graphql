@@ -40,6 +40,30 @@ class MovieController extends Controller
         
         //* Get multiple request input wich same name and wrapped it in array
         $tags = $request->collect('tags');
+
+        
+        $image = $request->file('poster');
+
+        $fileName = $image->getClientOriginalName();
+        $fileExtension = $image->getClientOriginalExtension();
+        $fileSize = $image->getSize();
+
+        if (in_array($fileExtension, array("jpg", "jpeg", "png")) == false ) {
+            return $this->errorResponse('Sorry! only image file is allowed', 400);
+        }
+
+        if ($fileSize > 1572864) {
+            return $this->errorResponse('Sorry! only image file with size smaller than 1,5 Mb is allowed', 400);
+        }
+
+        $uuid = $this->attributes['uuid'] = Uuid::uuid4()->toString();
+        $posterName = 'image-' . $uuid . '.' . $fileExtension;
+
+
+        $image->move('poster/', $posterName);
+        $posterPath = '/public/poster/' . $posterName;
+
+
     } 
 
 }

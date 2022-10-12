@@ -26,7 +26,17 @@ class MovieController extends Controller
 
     public function CreateNewMovieWithTags(Request $request)
     {
-        
+        if (!$request->hasFile('poster')) {
+            return $this->errorResponse('Sorry! you must upload an poster movie image', 400);
+        }
+
+        $this->validate($request, [
+            'title' => 'required',
+            'overview' => 'required',
+            'play_until' => 'required',
+            'tags' => 'required'
+        ]);
+
         
     } 
 

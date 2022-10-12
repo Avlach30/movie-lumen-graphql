@@ -63,7 +63,15 @@ class MovieController extends Controller
         $image->move('poster/', $posterName);
         $posterPath = '/public/poster/' . $posterName;
 
+        
+        $movie = new Movie;
 
+        $movie->title = $request->input('title');
+        $movie->overview = $request->input('overview');
+        $movie->play_until = $request->input('play_until');
+        $movie->poster = $posterPath;
+
+        $movie->save();
     } 
 
 }

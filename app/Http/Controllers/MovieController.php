@@ -38,6 +38,8 @@ class MovieController extends Controller
         ]);
 
         
+        //* Get multiple request input wich same name and wrapped it in array
+        $tags = $request->collect('tags');
     } 
 
 }

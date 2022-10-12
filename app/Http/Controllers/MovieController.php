@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use DB;
 use Illuminate\Http\Request;
 use Ramsey\Uuid\Uuid;
 
@@ -63,35 +64,44 @@ class MovieController extends Controller
         $image->move('poster/', $posterName);
         $posterPath = '/public/poster/' . $posterName;
 
-        
-        $movie = new Movie;
+        try {
 
-        $movie->title = $request->input('title');
-        $movie->overview = $request->input('overview');
-        $movie->play_until = $request->input('play_until');
-        $movie->poster = $posterPath;
+            $movie = new Movie;
 
-        $movie->save();
+            $movie->title = $request->input('title');
+            $movie->overview = $request->input('overview');
+            $movie->play_until = $request->input('play_until');
+            $movie->poster = $posterPath;
 
-        
-        
-        foreach ($tags as $tag) {
-            $newTag = new Tag;
+            $movie->save();
 
-            $newTag->name = $tag;
+            
+            
+            foreach ($tags as $tag) {
+                $newTag = new Tag;
 
-            $newTag->save();
+                $newTag->name = $tag;
+
+                $newTag->save();
 
 
-            $movieTag = new MovieTag;
+                $movieTag = new MovieTag;
 
-            $movieTag->movie_id = $movie->id;
-            $movieTag->tag_id = $newTag->id;
+                $movieTag->movie_id = $movie->id;
+                $movieTag->tag_id = $newTag->id;
 
-            $movieTag->save();
+                $movieTag->save();
+            }
+
+            DB::commit();
+
+            return $this->successResponse($movie, 'Create new movie with tags successfully', 201);
+            
+        } catch (\Exception $exception) {
+            DB::rollBack(); 
+
+            return $this->errorResponse($exp->getMessage(), 400);
         }
-
-        return $this->successResponse($movie, 'Create new movie with tags successfully', 201);
     } 
 
 }

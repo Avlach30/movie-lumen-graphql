@@ -72,6 +72,26 @@ class MovieController extends Controller
         $movie->poster = $posterPath;
 
         $movie->save();
+
+        
+        
+        foreach ($tags as $tag) {
+            $newTag = new Tag;
+
+            $newTag->name = $tag;
+
+            $newTag->save();
+
+
+            $movieTag = new MovieTag;
+
+            $movieTag->movie_id = $movie->id;
+            $movieTag->tag_id = $newTag->id;
+
+            $movieTag->save();
+        }
+
+        return $this->successResponse($movie, 'Create new movie with tags successfully', 201);
     } 
 
 }

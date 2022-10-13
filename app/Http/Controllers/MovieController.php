@@ -15,16 +15,6 @@ class MovieController extends Controller
 {
     use ApiResponse;
 
-    /**
-     * Create a new AuthController instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('auth:api', ['except' => ['login', 'SignUp']]);
-    }
-
     public function CreateNewMovieWithTags(Request $request)
     {
         if (!$request->hasFile('poster')) {

@@ -106,4 +106,11 @@ class MovieController extends Controller
         }
     } 
 
+    public function GetAllMovieWithTags()
+    {
+        $movies = Movie::with('tags')->get();
+
+        return $movies;
+    }
+
 }

@@ -18,6 +18,11 @@ class Movie extends Model
         'title', 'overview', 'poster', 'play_until'
     ];
 
+    public function tags()
+    {
+        return $this->belongsToMany(Tag::class, 'movie_tags');
+    }
+    
     /**
      * @var bool
      */

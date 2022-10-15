@@ -20,5 +20,10 @@ class RepositoryServiceProvider extends ServiceProvider
             'App\Interfaces\MovieInterface',
             'App\Repositories\MovieRepository'
         );
+
+        $this->app->bind(
+            'App\Interfaces\StudioInterface',
+            'App\Repositories\StudioRepository'
+        );
     }
 }

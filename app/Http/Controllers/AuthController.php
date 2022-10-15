@@ -3,27 +3,34 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Helper\ApiResponse;
+use App\Helper\SingleImageUpload;
+use App\Interfaces\AuthInterface;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Ramsey\Uuid\Uuid;
 
 class AuthController extends Controller
 {
-
+    protected $authInterface;
     use ApiResponse;
+    use SingleImageUpload;
 
     /**
      * Create a new AuthController instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct(AuthInterface $authInterface)
     {
         $this->middleware('auth:api', ['except' => ['login', 'SignUp']]);
+        $this->authInterface = $authInterface;
     }
 
     public function SignUp(Request $request) {
+
+        $email = $request->input('email');
+        $name = $request->input('name');
+        $phoneNumber = $request->input('phone_number');
 
         if (!$request->hasFile('avatar')) {
             return $this->errorResponse('Sorry! you must upload an avatar', 400);
@@ -35,32 +42,16 @@ class AuthController extends Controller
             'password' => 'required',
             'phone_number' => 'required'
         ]);
-
-        $image = $request->file('avatar');
-
-        $fileName = $image->getClientOriginalName();
-        $fileExtension = $image->getClientOriginalExtension();
-        $fileSize = $image->getSize();
-
-        if (in_array($fileExtension, array("jpg", "jpeg", "png")) == false ) {
-            return $this->errorResponse('Sorry! only image file is allowed', 400);
-        }
-
-        if ($fileSize > 1572864) {
-            return $this->errorResponse('Sorry! only image file with size smaller than 1,5 Mb is allowed', 400);
-        }
-
-        $uuid = $this->attributes['uuid'] = Uuid::uuid4()->toString();
-        $avatarName = 'image-' . $uuid . '.' . $fileExtension;
-
         
-        $isExist = User::where('email',$request->input('email'))->first();
-        if ($isExist) {
+        list($image, $avatarName) = $this->imageUpload($request, 'avatar');
+
+        $userAlreadyExist = $this->authInterface->FindUserByEmail($email);
+        if ($userAlreadyExist) {
             return $this->errorResponse('User already exist', 400);
         }
-
-
+        
         $image->move('avatar/', $avatarName);
+
         $avatarPath = '/public/avatar/' . $avatarName;
 
         $isAdmin = true;
@@ -73,17 +64,19 @@ class AuthController extends Controller
 
         $user = new User;
         
-        $user->name = $request->input('name');
-        $user->email = $request->input('email');
+        $user->name = $name;
+        $user->email = $email;
         $user->password = $hashedPw;
-        $user->phone_number = $request->input('phone_number');
-
+        $user->phone_number = $phoneNumber;
         $user->avatar = $avatarPath;
         $user->is_admin = $isAdmin;
+        
+        list($createdUser, $error) = $this->authInterface->SignUp($user);
+        if ($error != null) {
+            return $this->errorResponse($error, 500);
+        }
 
-        $user->save();
-
-        return $this->successResponse($user, 'Sign up successfully', 201);
+        return $this->successResponse($createdUser, 'Sign up successfully', 201);
     }
 
     public function login(Request $request)
@@ -91,11 +84,12 @@ class AuthController extends Controller
         $credentials = $request->only(['email', 'password']);
         $expiryTime = auth()->factory()->getTTL() * 60;
 
-        if (! $token = auth()->attempt($credentials)) {
-            return $this->errorResponse('Invalid email or password', 401);
+        list($token, $error) = $this->authInterface->LogIn($credentials, $expiryTime);
+        if ($error != null) {
+            return $this->errorResponse($error, 500);
         }
 
-        return $this->loginSuccessResponse($token, 'Login successfully', 200, $expiryTime);
+        return $this->successResponse($token, 'Login successfully', 200);
     }
 
     public function getProfile()

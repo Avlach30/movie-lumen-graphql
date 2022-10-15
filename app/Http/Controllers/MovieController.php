@@ -2,21 +2,34 @@
 
 namespace App\Http\Controllers;
 
-use DB;
 use Illuminate\Http\Request;
-use Ramsey\Uuid\Uuid;
 
 use App\Models\Movie;
-use App\Models\Tag;
-use App\Models\MovieTag;
 use App\Helper\ApiResponse;
+use App\Helper\SingleImageUpload;
+use App\Interfaces\MovieInterface;
 
 class MovieController extends Controller
 {
+    protected $movieInterface;
     use ApiResponse;
+    use SingleImageUpload;
+
+    public function __construct(MovieInterface $movieInterface)
+    {
+        $this->movieInterface = $movieInterface;
+    }
 
     public function CreateNewMovieWithTags(Request $request)
     {
+
+        //* Get multiple request input wich same name and wrapped it in array
+        $tags = $request->collect('tags');
+
+        $title = $request->input('title');
+        $overview = $request->input('overview');
+        $playUntil = $request->input('play_until');
+
         if (!$request->hasFile('poster')) {
             return $this->errorResponse('Sorry! you must upload an poster movie image', 400);
         }
@@ -29,78 +42,34 @@ class MovieController extends Controller
         ]);
 
         
-        //* Get multiple request input wich same name and wrapped it in array
-        $tags = $request->collect('tags');
-
-        
-        $image = $request->file('poster');
-
-        $fileName = $image->getClientOriginalName();
-        $fileExtension = $image->getClientOriginalExtension();
-        $fileSize = $image->getSize();
-
-        if (in_array($fileExtension, array("jpg", "jpeg", "png")) == false ) {
-            return $this->errorResponse('Sorry! only image file is allowed', 400);
-        }
-
-        if ($fileSize > 1572864) {
-            return $this->errorResponse('Sorry! only image file with size smaller than 1,5 Mb is allowed', 400);
-        }
-
-        $uuid = $this->attributes['uuid'] = Uuid::uuid4()->toString();
-        $posterName = 'image-' . $uuid . '.' . $fileExtension;
-
+        list($image, $posterName) = $this->imageUpload($request, 'poster');
 
         $image->move('poster/', $posterName);
         $posterPath = '/public/poster/' . $posterName;
 
-        try {
+        $movie = new Movie;
 
-            DB::beginTransaction();
+        $movie->title = $title;
+        $movie->overview = $overview;
+        $movie->play_until = $playUntil;
+        $movie->poster = $posterPath;
 
-            $movie = new Movie;
-
-            $movie->title = $request->input('title');
-            $movie->overview = $request->input('overview');
-            $movie->play_until = $request->input('play_until');
-            $movie->poster = $posterPath;
-
-            $movie->save();
-
-            
-            
-            foreach ($tags as $tag) {
-                $newTag = new Tag;
-
-                $newTag->name = $tag;
-
-                $newTag->save();
-
-
-                $movieTag = new MovieTag;
-
-                $movieTag->movie_id = $movie->id;
-                $movieTag->tag_id = $newTag->id;
-
-                $movieTag->save();
-            }
-
-            DB::commit();
-
-            return $this->successResponse($movie, 'Create new movie with tags successfully', 201);
-            
-        } catch (\Exception $exception) {
-            DB::rollBack(); 
-
-            return $this->errorResponse($exp->getMessage(), 400);
+        list($newMovie, $error) = $this->movieInterface->CreateNewMovieWithTags($movie, $tags);
+        if ($error != null) {
+            return $this->errorResponse($error, 500);
         }
+
+        return $this->successResponse($newMovie, 'Create new movie with tags successfully', 201);
     } 
 
     public function GetAllMovieWithTags()
     {
-        $movies = Movie::with('tags')->get();
+        list($movies, $error) = $this->movieInterface->GetAllMovieWithTags();
+        if ($error != null) {
+            return $this->errorResponse($error, 500);
+        }
 
-        return $movies;
+        return $this->successResponse($movies, 'Get all movie with tags successfully', 201);
     }
 
 }

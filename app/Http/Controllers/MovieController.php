@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 use App\Models\Movie;
 use App\Helper\ApiResponse;
@@ -34,12 +35,22 @@ class MovieController extends Controller
             return $this->errorResponse('Sorry! you must upload an poster movie image', 400);
         }
 
-        $this->validate($request, [
+        $validationRules = [
             'title' => 'required',
             'overview' => 'required',
             'play_until' => 'required',
             'tags' => 'required'
-        ]);
+        ];
+        $validationErrorMessage = [
+            'title.required' => 'title input field must be required',
+            'overview.required' => 'overview input field must be required',
+            'play_until.required' => 'play_until input field must be required',
+            'tags.required' => 'tags input field must be required',
+        ];
+        $validation = Validator::make($request->all(), $validationRules, $validationErrorMessage);
+        if ($validation->fails()) {
+            return $this->errorResponse($validation->errors(), 422);
+        }
 
         
         list($image, $posterName) = $this->imageUpload($request, 'poster');

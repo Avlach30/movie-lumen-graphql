@@ -6,3 +6,4 @@ Homestead.yaml
 .phpunit.result.cache
 /public/avatar
 /public/poster
+/nbproject

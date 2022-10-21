@@ -12,13 +12,17 @@ trait ApiResponse{
     }
     protected function errorResponse($error, $code)
     {
+
+        //* Configure sentry for capture error message
+        \Sentry\captureMessage($error);
+
         return response()->json([
             'isSuccess'=> false,
             'errors' => $error,
             'message'=> 'Error occured'
         ], $code);
     }
-    protected function loginSuccessResponse($token, $message, $code, $expiryTime) 
+    protected function loginSuccessResponse($token, $message, $code, $expiryTime)
     {
         return response()->json([
             'isSuccess'=> true,

@@ -8,6 +8,7 @@ use App\Interfaces\AuthInterface;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
@@ -36,12 +37,23 @@ class AuthController extends Controller
             return $this->errorResponse('Sorry! you must upload an avatar', 400);
         }
 
-        $this->validate($request, [
+        $validationRules = [
             'name' => 'required',
             'email' => 'required|email',
             'password' => 'required',
             'phone_number' => 'required'
-        ]);
+        ];
+        $validationErrorMessage = [
+            'name.required' => 'name input field must be required',
+            'email.required' => 'email input field must be required',
+            'email.email' => 'email input field must be valid email format',
+            'password.required' => 'password input field must be required',
+            'phone_number.required' => 'phone_number input field must be required',
+        ];
+        $validation = Validator::make($request->all(), $validationRules, $validationErrorMessage);
+        if ($validation->fails()) {
+            return $this->errorResponse($validation->errors(), 422);
+        }
         
         list($image, $avatarName) = $this->imageUpload($request, 'avatar');
 

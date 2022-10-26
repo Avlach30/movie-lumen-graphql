@@ -1,0 +1,41 @@
+interface Response {
+    message: String!
+}
+
+type ResponseSuccess implements Response {
+    message: String!
+}
+
+type ResponseError implements Response {
+    message: String!
+}
+
+type LoginSuccessResponse {
+    access_token: String!
+    type: String!
+    expires_in: Int!
+}
+
+union LoginResponse = LoginSuccessResponse | ResponseError
+
+input SignupInput {
+    name: String! @rules(apply: ["min:3", "max:50"])
+    email: String! @rules(apply: ["max:80"])
+    phone_number: String! @rules(apply: ["min:3"])      
+    password: String! @rules(apply: ["min:5"])
+    avatar: String! @rules(apply: ["min:3"])
+}
+
+input LoginInput {
+    email: String!  
+    password: String!
+}
+
+type Query {
+    HelloWorld: String!
+}
+
+type Mutation {
+    CreateAccount(input: SignupInput! @spread): Response!
+    Login(input: LoginInput! @spread): LoginResponse!
+}

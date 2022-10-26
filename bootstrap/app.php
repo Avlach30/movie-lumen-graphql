@@ -61,6 +61,7 @@ $app->singleton(
 
 $app->configure('app');
 $app->configure('auth');
+$app->configure('lighthouse');
 
 
 /*
@@ -99,6 +100,10 @@ $app->register(App\Providers\AuthServiceProvider::class);
 $app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 $app->register(Flipbox\LumenGenerator\LumenGeneratorServiceProvider::class);
 $app->register(Sentry\Laravel\ServiceProvider::class);
+$app->register(Nuwave\Lighthouse\LighthouseServiceProvider::class);
+$app->register(Nuwave\Lighthouse\Pagination\PaginationServiceProvider::class);
+$app->register(MLL\GraphQLPlayground\GraphQLPlaygroundServiceProvider::class);
+$app->register(Nuwave\Lighthouse\Validation\ValidationServiceProvider::class);
 // $app->register(App\Providers\EventServiceProvider::class);
 
 /*

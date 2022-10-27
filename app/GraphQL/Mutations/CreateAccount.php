@@ -42,6 +42,8 @@ final class CreateAccount
             // return $this->errorResponse('User already exist', 400);
         }
 
+        $path = $avatar->storePublicly('public/avatar');
+
         $hashedPw = Hash::make($password);
 
         $user = new User;
@@ -50,8 +52,10 @@ final class CreateAccount
         $user->email = $email;
         $user->password = $hashedPw;
         $user->phone_number = $phoneNumber;
-        $user->avatar = $avatar;
+        $user->avatar = "/" . $path;
         $user->is_admin = 0;
+
+        echo($avatar);
         
         list($createdUser, $error) = $this->authInterface->SignUp($user);
         if ($error != null) {

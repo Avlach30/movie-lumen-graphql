@@ -1,3 +1,6 @@
+scalar Upload
+    @scalar(class: "Nuwave\\Lighthouse\\Schema\\Types\\Scalars\\Upload")
+
 interface Response {
     message: String!
 }
@@ -23,7 +26,7 @@ input SignupInput {
     email: String! @rules(apply: ["max:80"])
     phone_number: String! @rules(apply: ["min:3"])      
     password: String! @rules(apply: ["min:5"])
-    avatar: String! @rules(apply: ["min:3"])
+    avatar: Upload!
 }
 
 input LoginInput {
